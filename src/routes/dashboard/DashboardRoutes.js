@@ -1,5 +1,5 @@
-import express from 'express'
+import express from 'express';
 import dashboardPrivateRouter from './DashboardPrivate.js';
 const dashboardRoutes = express.Router();
-dashboardRoutes.use(dashboardPrivateRouter)
-export default dashboardRoutes
+dashboardRoutes.use(dashboardPrivateRouter);
+export default dashboardRoutes;
