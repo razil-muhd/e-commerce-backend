@@ -1,9 +1,18 @@
 import mongoose from 'mongoose';
 import { bannerModel } from '../../models/BannerModel.js';
 import { serverError } from '../../utils/errorHandler.js';
+import path from 'path';
+
 export const bannerCreate = async (req, res, next) => {
 	try {
 		const { bannername, category } = req.body;
+		let image;
+		
+				req.files.forEach((file) => {
+					if (file.fieldname == 'image') {
+						image =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
+					}
+				});
 		const existmodel = await bannerModel.findOne({ name: bannername });
 		if (existmodel) {
 			return res.status(422).json({ message: 'Banner name already exist' });
@@ -15,10 +24,11 @@ export const bannerCreate = async (req, res, next) => {
 		await bannerModel.create({
 			name: bannername,
 			category: category,
+			image:image
 		});
 		return res.status(200).json({ message: 'Banner created' });
 	} catch (err) {
-		//    console.log("hai:",err);
+		console.log('hai:::',err);
 		next(serverError());
 	}
 };
@@ -35,6 +45,7 @@ export const getAllBanners = async (req, res, next) => {
 					name: 1,
 					category: 1,
 					_id: 1,
+					image:1
 				},
 			},
 		]);
@@ -84,6 +95,15 @@ export const updatebanner = async (req, res, next) => {
 		if (!bannername) {
 			return res.status(422).json({ message: 'Banner name is required' });
 		}
+		let imageFile = req.body.image;
+				if(req.files){
+					req.files.forEach((file) => {
+						if (file.fieldname == 'image') {
+							imageFile =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
+						}
+					});
+					
+				}
 		const existmodel = await bannerModel.findOne({ name: bannername, _id: { $ne: bannerid } });
 		if (existmodel) {
 			return res.status(422).json({ message: 'Banner name already exist' });
@@ -94,11 +114,12 @@ export const updatebanner = async (req, res, next) => {
 			deletedAt: null,
 		});
 		banners.name = bannername;
+		banners.image=imageFile;
 
 		await banners.save();
 		return res.status(200).json({ message: 'updated succesfully', data: banners });
 	} catch (err) {
-		console.log(err);
+		console.log('helo:::',err);
 		next(serverError());
 	}
 };

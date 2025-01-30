@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import { categoryModel } from '../../models/CategoryModel.js';
 import { serverError } from '../../utils/errorHandler.js';
-import { getFilePath } from '../../utils/filepath.js';
 import path from 'path';
 
 export const categoryCreate = async (req, res, next) => {
@@ -9,7 +8,7 @@ export const categoryCreate = async (req, res, next) => {
 		const { categoryname } = req.body;
 		let image;
 
-		req.files.forEach((file) => {
+		req.files?.forEach((file) => {
 			if (file.fieldname == 'image') {
 				image =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
 			}
@@ -46,6 +45,7 @@ export const getAllCategory = async (req, res, next) => {
 					category: '$name',
 					_id: 1,
 					image:1
+
 				},
 			},
 		]);
@@ -97,15 +97,21 @@ export const updatecategory = async (req, res, next) => {
 		if (!categoryname) {
 			return res.status(422).json({ message: 'Category name is required' });
 		}
+		console.log(req.files);
+		console.log(req.body);
 		let imageFile = req.body.image;
-		if(req.file){
-			imageFile = getFilePath(req.file);
+		if(req.files){
+			req.files.forEach((file) => {
+				if (file.fieldname == 'image') {
+					imageFile =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
+				}
+			});
 		}
 		const existmodel = await categoryModel.findOne({ name: categoryname, _id: { $ne: categoryId } });
 		if (existmodel) {
 			return res.status(422).json({ message: 'Category name already exist' });
 		}
-
+		console.log(imageFile);
 		const category = await categoryModel.findOne({
 			_id: categoryId,
 			deletedAt: null,

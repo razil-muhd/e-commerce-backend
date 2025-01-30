@@ -6,10 +6,11 @@ import {
 	getbrandByid,
 	updatebrand,
 } from '../../../controllers/dashboard/BrandController.js';
+import { uploadFile } from '../../../utils/fileuploader.js';
 const brandrouter = express.Router();
-brandrouter.post('/create', brandCreate);
+brandrouter.post('/create',uploadFile('banner').any(), brandCreate);
 brandrouter.get('/get-all', getallBrands);
 brandrouter.get('/get-one/:id', getbrandByid);
-brandrouter.put('/update/:id', updatebrand);
+brandrouter.put('/update/:id',uploadFile('banner').any(), updatebrand);
 brandrouter.delete('/delete/:id', deleteBrands);
 export default brandrouter;

@@ -1,10 +1,18 @@
 import mongoose from 'mongoose';
 import { brandModel } from '../../models/BrandModel.js';
 import { serverError } from '../../utils/errorHandler.js';
+import path from 'path';
 
 export const brandCreate = async (req, res, next) => {
 	try {
 		const { brandname } = req.body;
+		let image;
+				
+						req.files.forEach((file) => {
+							if (file.fieldname == 'image') {
+								image =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
+							}
+						});
 		const existmodel = await brandModel.findOne({ name: brandname });
 		if (existmodel) {
 			return res.status(422).json({ message: 'brand name already exist' });
@@ -14,6 +22,7 @@ export const brandCreate = async (req, res, next) => {
 		}
 		await brandModel.create({
 			name: brandname,
+			image:image
 		});
 		return res.status(200).json({ message: 'Brand name created' });
 	} catch (err) {
@@ -34,6 +43,7 @@ export const getallBrands = async (req, res, next) => {
 				$project: {
 					brand: '$name',
 					_id: 1,
+					image:1
 				},
 			},
 		]);
@@ -85,6 +95,15 @@ export const updatebrand = async (req, res, next) => {
 		if (!brandname) {
 			return res.status(422).json({ message: 'Brand name is required' });
 		}
+		let imageFile = req.body.image;
+						if(req.files){
+							req.files.forEach((file) => {
+								if (file.fieldname == 'image') {
+									imageFile =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
+								}
+							});
+							
+						}
 		const existmodel = await brandModel.findOne({ name: brandname, _id: { $ne: brandId } });
 		if (existmodel) {
 			return res.status(422).json({ message: 'brand name already exist' });
@@ -95,6 +114,7 @@ export const updatebrand = async (req, res, next) => {
 			deletedAt: null,
 		});
 		brand.name = brandname;
+		brand.image = imageFile;
 		await brand.save();
 		return res.status(200).json({ message: 'updated succesfully', data: brand });
 	} catch (err) {
