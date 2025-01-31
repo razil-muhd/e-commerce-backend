@@ -5,7 +5,7 @@ import path from 'path';
 
 export const categoryCreate = async (req, res, next) => {
 	try {
-		const { categoryname } = req.body;
+		const { category } = req.body;
 		let image;
 
 		req.files?.forEach((file) => {
@@ -13,19 +13,19 @@ export const categoryCreate = async (req, res, next) => {
 				image =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
 			}
 		});
-		const existmodel = await categoryModel.findOne({ name: categoryname });
+		const existmodel = await categoryModel.findOne({ name: category });
 		if (existmodel) {
 			return res.status(422).json({ message: 'Category name already exist' });
 		}
-		if (!categoryname) {
+		if (!category) {
 			return res.status(422).json({ message: 'Category name is required' });
 		}
 
 		await categoryModel.create({
-			name: categoryname,
+			name: category,
             image:image
 		});
-		return res.status(200).json({ message: 'Category created' });
+		return res.status(200).json({ message: 'Category created' ,success:true});
 	} catch (err) {
 		console.log(err);
 		next(serverError());
@@ -42,7 +42,7 @@ export const getAllCategory = async (req, res, next) => {
 			},
 			{
 				$project: {
-					category: '$name',
+					category: '$name'	,
 					_id: 1,
 					image:1
 
@@ -93,8 +93,8 @@ export const getCategoryByid = async (req, res, next) => {
 export const updatecategory = async (req, res, next) => {
 	try {
 		const categoryId = req.params.id;
-		const { categoryname } = req.body;
-		if (!categoryname) {
+		const { category } = req.body;
+		if (!category) {
 			return res.status(422).json({ message: 'Category name is required' });
 		}
 		console.log(req.files);
@@ -107,18 +107,18 @@ export const updatecategory = async (req, res, next) => {
 				}
 			});
 		}
-		const existmodel = await categoryModel.findOne({ name: categoryname, _id: { $ne: categoryId } });
+		const existmodel = await categoryModel.findOne({ name: category, _id: { $ne: categoryId } });
 		if (existmodel) {
 			return res.status(422).json({ message: 'Category name already exist' });
 		}
 		console.log(imageFile);
-		const category = await categoryModel.findOne({
+		const categories = await categoryModel.findOne({
 			_id: categoryId,
 			deletedAt: null,
 		});
-		category.name = categoryname;
-		category.image=imageFile;
-		await category.save();
+		categories.name = category;
+		categories.image=imageFile;
+		await categories.save();
 		return res.status(200).json({ message: 'updated succesfully' });
 	} catch (err) {
 		console.log(err);

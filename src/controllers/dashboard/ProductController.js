@@ -6,7 +6,7 @@ import { productModel } from '../../models/ProductModel.js';
 
 export const productCreate = async (req, res, next) => {
     try {
-        const { productname , productdescription,productprice } = req.body;
+        const { productname , productdescription,productprice ,category,brand} = req.body;
         let image;
 
         req.files?.forEach((file) => {
@@ -26,7 +26,9 @@ export const productCreate = async (req, res, next) => {
             name: productname,
             image:image,
             description:productdescription,
-            price:productprice
+            price:productprice,
+            category: category,
+            brand:brand
         });
         return res.status(200).json({ message: 'Product is  created' });
     } catch (err) {
@@ -49,7 +51,9 @@ export const getAllProducts = async (req, res, next) => {
                     _id: 1,
                     image:1,
                     description :1,
-                    price:1
+                    price:1,
+                    category:1,
+                    brand:1
                 },
             },
         ]);
@@ -80,7 +84,9 @@ export const getproductbyId = async (req, res, next) => {
                         name: 1,
                         _id: 1,
                         description:1,
-                        price:1
+                        price:1,
+                        category:1,
+                        brand:1
                     },
                 },
             ])
@@ -99,7 +105,7 @@ export const getproductbyId = async (req, res, next) => {
 export const updateproduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
-        const { productname, productdescription,productprice } = req.body;
+        const { productname, productdescription,productprice,category,brand } = req.body;
         if (!productname) {
             return res.status(422).json({ message: 'Product name is required' });
         }
@@ -126,6 +132,8 @@ export const updateproduct = async (req, res, next) => {
         products.image=imageFile;
         products.description=productdescription;
         products.price =productprice;
+        products.category=category;
+        products.brand=brand;
         await products.save();
         return res.status(200).json({ message: 'updated succesfully' });
     } catch (err) {
