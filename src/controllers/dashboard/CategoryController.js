@@ -13,7 +13,7 @@ export const categoryCreate = async (req, res, next) => {
 				image =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
 			}
 		});
-		const existmodel = await categoryModel.findOne({ name: category });
+	const existmodel = await categoryModel.findOne({ name: category, deletedAt:null});
 		if (existmodel) {
 			return res.status(422).json({ message: 'Category name already exist' });
 		}
@@ -38,11 +38,12 @@ export const getAllCategory = async (req, res, next) => {
 			{
 				$match: {
 					deletedAt: null,
+					
 				},
 			},
 			{
 				$project: {
-					category: '$name'	,
+					category: '$name',
 					_id: 1,
 					image:1
 
@@ -75,6 +76,7 @@ export const getCategoryByid = async (req, res, next) => {
 					$project: {
 						name: 1,
 						_id: 1,
+						image:1
 					},
 				},
 			])
@@ -92,8 +94,9 @@ export const getCategoryByid = async (req, res, next) => {
 
 export const updatecategory = async (req, res, next) => {
 	try {
-		const categoryId = req.params.id;
+				const categoryId = req.params.id;
 		const { category } = req.body;
+
 		if (!category) {
 			return res.status(422).json({ message: 'Category name is required' });
 		}
@@ -107,7 +110,7 @@ export const updatecategory = async (req, res, next) => {
 				}
 			});
 		}
-		const existmodel = await categoryModel.findOne({ name: category, _id: { $ne: categoryId } });
+		const existmodel = await categoryModel.findOne({ name: category, _id: { $ne: categoryId },deletedAt:null });
 		if (existmodel) {
 			return res.status(422).json({ message: 'Category name already exist' });
 		}
@@ -119,7 +122,7 @@ export const updatecategory = async (req, res, next) => {
 		categories.name = category;
 		categories.image=imageFile;
 		await categories.save();
-		return res.status(200).json({ message: 'updated succesfully' });
+		return res.status(200).json({ message: 'updated succesfully',success:true });
 	} catch (err) {
 		console.log(err);
 		next(serverError());
@@ -136,7 +139,7 @@ export const deleteCategory = async (req, res, next) => {
 		category.deletedAt = new Date();
 		await category.save();
 		return res.status(200).json({
-			message: 'Delete succesfully',
+			message: 'Delete succesfully',success:true,
 		});
 	} catch (err) {
 		console.log(err);

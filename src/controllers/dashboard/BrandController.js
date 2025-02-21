@@ -5,7 +5,7 @@ import path from 'path';
 
 export const brandCreate = async (req, res, next) => {
 	try {
-		const { brandname } = req.body;
+		const { brands } = req.body;
 		let image;
 				
 						req.files.forEach((file) => {
@@ -13,18 +13,22 @@ export const brandCreate = async (req, res, next) => {
 								image =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
 							}
 						});
-		const existmodel = await brandModel.findOne({ name: brandname });
+		const existmodel = await brandModel.findOne({ name: brands,deletedAt:null });
+
+		console.log( req.body);
+		console.log( existmodel);
+
 		if (existmodel) {
 			return res.status(422).json({ message: 'brand name already exist' });
 		}
-		if (!brandname) {
+		if (!brands) {
 			return res.status(422).json({ message: 'brand name is required' });
 		}
 		await brandModel.create({
-			name: brandname,
+			name: brands,
 			image:image
 		});
-		return res.status(200).json({ message: 'Brand name created' });
+		return res.status(200).json({ message: 'Brand name created',success:true });
 	} catch (err) {
 		next(serverError());
 	}
@@ -41,7 +45,7 @@ export const getallBrands = async (req, res, next) => {
 
 			{
 				$project: {
-					brand: '$name',
+					brands: '$name',
 					_id: 1,
 					image:1
 				},
@@ -60,7 +64,8 @@ export const getallBrands = async (req, res, next) => {
 
 export const getbrandByid = async (req, res, next) => {
 	try {
-		const brandId = req.params.Id;
+		const brandId = req.params.id;
+
 		// const category = await CategoryModel.({_id:categoryId});
 		const brand = (
 			await brandModel.aggregate([
@@ -74,10 +79,12 @@ export const getbrandByid = async (req, res, next) => {
 					$project: {
 						name: 1,
 						_id: 1,
+						image:1
 					},
 				},
 			])
 		).at(0);
+
 		return res.status(200).json({
 			message: 'fetched brand',
 			data: brand,
@@ -91,8 +98,8 @@ export const getbrandByid = async (req, res, next) => {
 export const updatebrand = async (req, res, next) => {
 	try {
 		const brandId = req.params.id;
-		const { brandname } = req.body;
-		if (!brandname) {
+		const {  brands } = req.body;
+		if (!brands) {
 			return res.status(422).json({ message: 'Brand name is required' });
 		}
 		let imageFile = req.body.image;
@@ -104,7 +111,7 @@ export const updatebrand = async (req, res, next) => {
 							});
 							
 						}
-		const existmodel = await brandModel.findOne({ name: brandname, _id: { $ne: brandId } });
+		const existmodel = await brandModel.findOne({ name: brands, _id: { $ne: brandId },deletedAt:null });
 		if (existmodel) {
 			return res.status(422).json({ message: 'brand name already exist' });
 		}
@@ -113,10 +120,10 @@ export const updatebrand = async (req, res, next) => {
 			_id: brandId,
 			deletedAt: null,
 		});
-		brand.name = brandname;
+		brand.name = brands;
 		brand.image = imageFile;
 		await brand.save();
-		return res.status(200).json({ message: 'updated succesfully', data: brand });
+		return res.status(200).json({ message: 'updated succesfully', success:true });
 	} catch (err) {
 		console.log(err);
 		next(serverError());
@@ -133,7 +140,7 @@ export const deleteBrands = async (req, res, next) => {
 		brand.deletedAt = new Date();
 		await brand.save();
 		return res.status(200).json({
-			message: 'Delete succesfully',
+			message: 'Delete succesfully', success:true
 		});
 	} catch (err) {
 		console.log(err);

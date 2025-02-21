@@ -1,34 +1,35 @@
 import mongoose from 'mongoose';
 import { bannerModel } from '../../models/BannerModel.js';
+import { categoryModel } from '../../models/CategoryModel.js';
 import { serverError } from '../../utils/errorHandler.js';
 import path from 'path';
 
 export const bannerCreate = async (req, res, next) => {
 	try {
-		const { bannername, category } = req.body;
+		const { banner, category } = req.body;
 		let image;
-		
-				req.files.forEach((file) => {
-					if (file.fieldname == 'image') {
-						image =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
-					}
-				});
-		const existmodel = await bannerModel.findOne({ name: bannername });
+
+		req.files.forEach((file) => {
+			if (file.fieldname == 'image') {
+				image = 'uploads' + file.path.split(path.sep + 'uploads').at(1);
+			}
+		});
+		const existmodel = await bannerModel.findOne({ name: banner, deletedAt: null });
 		if (existmodel) {
 			return res.status(422).json({ message: 'Banner name already exist' });
 		}
-		if (!bannername) {
+		if (!banner) {
 			return res.status(422).json({ message: 'Banner name is required' });
 		}
 
 		await bannerModel.create({
-			name: bannername,
+			name: banner,
 			category: category,
-			image:image
+			image: image,
 		});
-		return res.status(200).json({ message: 'Banner created' });
+		return res.status(200).json({ message: 'Banner created', success: true });
 	} catch (err) {
-		console.log('hai:::',err);
+		console.log('hai:::', err);
 		next(serverError());
 	}
 };
@@ -41,11 +42,34 @@ export const getAllBanners = async (req, res, next) => {
 				},
 			},
 			{
+				$lookup: {
+					from: categoryModel.modelName,
+					localField: 'category',
+					foreignField: '_id',
+					as: 'categories',
+					pipeline: [
+						{
+							$project: {
+								_id: 0,
+								name: 1,
+							},
+						},
+					],
+				},
+			},
+			{
+				$unwind: {
+					path: '$categories',
+					// preserveNullAndEmptyArrays: true,
+				},
+			},
+
+			{
 				$project: {
 					name: 1,
-					category: 1,
+					x: '$categories.name',
 					_id: 1,
-					image:1
+					image: 1,
 				},
 			},
 		]);
@@ -74,6 +98,7 @@ export const getBannerbyid = async (req, res, next) => {
 						name: 1,
 						category: 1,
 						_id: 1,
+						image:1
 					},
 				},
 			])
@@ -82,7 +107,7 @@ export const getBannerbyid = async (req, res, next) => {
 			message: 'fetched banners',
 			data: banners,
 		});
-	} catch(err) {
+	} catch (err) {
 		console.log(err);
 		next(serverError());
 		console.log('catcgg:', err);
@@ -91,20 +116,19 @@ export const getBannerbyid = async (req, res, next) => {
 export const updatebanner = async (req, res, next) => {
 	try {
 		const bannerid = req.params.id;
-		const { bannername } = req.body;
-		if (!bannername) {
+		const { banner } = req.body;
+		if (!banner) {
 			return res.status(422).json({ message: 'Banner name is required' });
 		}
 		let imageFile = req.body.image;
-				if(req.files){
-					req.files.forEach((file) => {
-						if (file.fieldname == 'image') {
-							imageFile =  'uploads' + file.path.split(path.sep + 'uploads').at(1);
-						}
-					});
-					
+		if (req.files) {
+			req.files.forEach((file) => {
+				if (file.fieldname == 'image') {
+					imageFile = 'uploads' + file.path.split(path.sep + 'uploads').at(1);
 				}
-		const existmodel = await bannerModel.findOne({ name: bannername, _id: { $ne: bannerid } });
+			});
+		}
+		const existmodel = await bannerModel.findOne({ name: banner, _id: { $ne: bannerid } });
 		if (existmodel) {
 			return res.status(422).json({ message: 'Banner name already exist' });
 		}
@@ -113,13 +137,13 @@ export const updatebanner = async (req, res, next) => {
 			_id: bannerid,
 			deletedAt: null,
 		});
-		banners.name = bannername;
-		banners.image=imageFile;
+		banners.name = banner;
+		banners.image = imageFile;
 
 		await banners.save();
-		return res.status(200).json({ message: 'updated succesfully', data: banners });
+		return res.status(200).json({ message: 'updated succesfully', data: banners, success: true });
 	} catch (err) {
-		console.log('helo:::',err);
+		console.log('helo:::', err);
 		next(serverError());
 	}
 };
@@ -135,6 +159,7 @@ export const deleteBanners = async (req, res, next) => {
 		await banners.save();
 		return res.status(200).json({
 			message: 'Delete succesfully',
+			success: true,
 		});
 	} catch (err) {
 		console.log('hai:', err);

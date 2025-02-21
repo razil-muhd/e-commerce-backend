@@ -10,6 +10,7 @@ import {
 import { uploadFile } from '../../../utils/fileuploader.js';
 
 const bannerRouter = express.Router();
+
 bannerRouter.post('/create',uploadFile('banner').any(), bannerCreate);
 bannerRouter.get('/get-all', getAllBanners);
 bannerRouter.get('/get-one/:id', getBannerbyid);

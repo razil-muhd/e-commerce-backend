@@ -30,6 +30,11 @@ const productSchema = new mongoose.Schema(
 			type: mongoose.Types.ObjectId,
 			required: false,
 		},
+		featured:{
+			type:Boolean,
+			required:false,
+			default:false
+		}
 	},
 	{ timestamps: true },
 );
