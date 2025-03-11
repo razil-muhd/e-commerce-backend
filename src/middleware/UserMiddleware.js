@@ -2,8 +2,7 @@ import jwt from 'jsonwebtoken';
 import env from '../../env.js';
 
 export const userMiddleware = (req,res,next) => {
-   
-    console.log('headers',req.headers);
+  
     const authHeader = req.headers.authorization;
     if(!authHeader){
         return res.status(401).json({

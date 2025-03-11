@@ -13,6 +13,10 @@ const env = cleanEnv(process.env, {
 		default:
 			'eyJhbGciOiJIUzI1NiJ9.eyJSb2yhuilOQuiuyi4iLCJlfrjWbbCI6ImFkbWluQGVtYy5jb20ifQ.xCyQt3wQXRj8NojG-m26LS9GktX90VBxU15BoxLuTS8'
 	}),
+	ENDPOINT_SECRET: str({
+		default:
+			'whsec_U45Q7LjLSNfoVU8LQN8sp1a2BBPB5s3w'
+	}),
 	ADMIN_EMAIL: str({default:'admin@gmail.com'}),
 	ADMIN_PASSWORD: str({default:'admin'}),
 	JWT_EXPIRES: str({default:'7 days'}),

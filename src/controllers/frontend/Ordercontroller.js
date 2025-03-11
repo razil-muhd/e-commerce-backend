@@ -65,56 +65,56 @@ export const createOrder = async (req, res, next) => {
 
 export const payment = async (req, res, next) => {
 	try {
+		console.log('helo:');
 		const stripe = Stripe(env.STRIPE_SECRET_KEY);
 		const { orderId } = req.query;
-        const order = await OrderModel.findOne({_id:orderId});
+		console.log('orderiddd::', orderId);
+		const order = await OrderModel.findOne({ _id: orderId });
 
-         const customer = await stripe.customers.create({
-            name: order.billingdetails.name,
-            address: {
-                line1: order.billingdetails.address,
-                postal_code: order.billingdetails.pincode,
-                city: 'Kannur',
-                state: 'Kerala',
-                country: 'india',
-            },
-         });
+		const customer = await stripe.customers.create({
+			name: order.billingdetails.name,
+			address: {
+				line1: order.billingdetails.address,
+				postal_code: order.billingdetails.pincode,
+				city: 'Kannur',
+				state: 'Kerala',
+				country: 'india',
+			},
+		});
 
-         const session = await stripe.paymentIntents.create({
-            customer: customer.id,
-            amount: order.grandTotal * 100,
-            currency: 'inr',
-            shipping: {
-                name:order.billingdetails.name,
-                address: {
-                    line1: order.billingdetails.address,
-                    postal_code: order.billingdetails.pincode,
-                    city: 'Kannur',
-                    state: 'Kerala',
-                    country: 'india',
-            },
-        },
-        automatic_payment_methods:{
-            enabled:true,
-        },
-        description:'order',
-        metadata:{
-            orderId: orderId.toString(),
-        },
-        receipt_email:order.email,
+		const session = await stripe.paymentIntents.create({
+			customer: customer.id,
+			amount: order.grandTotal * 100,
+			currency: 'inr',
+			shipping: {
+				name: order.billingdetails.name,
+				address: {
+					line1: order.billingdetails.address,
+					postal_code: order.billingdetails.pincode,
+					city: 'Kannur',
+					state: 'Kerala',
+					country: 'india',
+				},
+			},
+			automatic_payment_methods: {
+				enabled: true,
+			},
+			description: 'order',
+			metadata: {
+				orderId: orderId.toString(),
+			},
+			receipt_email: order.email,
+		});
 
-         });
-
-          return res.status(200).json({
-            success:true,
-            message:'payment created',
-            data:{
-                sessionId:session.client_secret,
-                amount:order.grandTotal,
-            }
-          });
+		return res.status(200).json({
+			success: true,
+			message: 'payment created',
+			data: {
+				sessionId: session.client_secret,
+				amount: order.grandTotal,
+			},
+		});
 	} catch (err) {
-        console.log('errrrorrr:',err);
 		next(serverError());
 	}
 };
