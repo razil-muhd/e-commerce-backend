@@ -37,7 +37,7 @@ export const getAllCategory = async (req, res, next) => {
 		const categories = await categoryModel.aggregate([
 			{
 				$match: {
-					deletedAt: null,
+					deletedAt: null,	
 					
 				},
 			},

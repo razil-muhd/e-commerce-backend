@@ -9,6 +9,7 @@ export const createOrder = async (req, res, next) => {
 		const { adminId } = req.user;
 		if (!items) {
 			return res.status(400).json({
+				success:false,
 				message: 'Items are required',
 			});
 		}
@@ -65,10 +66,10 @@ export const createOrder = async (req, res, next) => {
 
 export const payment = async (req, res, next) => {
 	try {
-		console.log('helo:');
+		// console.log('helo:');
 		const stripe = Stripe(env.STRIPE_SECRET_KEY);
 		const { orderId } = req.query;
-		console.log('orderiddd::', orderId);
+		// console.log('orderiddd::', orderId);
 		const order = await OrderModel.findOne({ _id: orderId });
 
 		const customer = await stripe.customers.create({
@@ -82,9 +83,11 @@ export const payment = async (req, res, next) => {
 			},
 		});
 
+		const grandTotal = Math.round(order.grandTotal * 100);
+		
 		const session = await stripe.paymentIntents.create({
 			customer: customer.id,
-			amount: order.grandTotal * 100,
+			amount: grandTotal,
 			currency: 'inr',
 			shipping: {
 				name: order.billingdetails.name,
@@ -115,6 +118,7 @@ export const payment = async (req, res, next) => {
 			},
 		});
 	} catch (err) {
+		console.log('order 2::',err);
 		next(serverError());
 	}
 };

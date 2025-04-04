@@ -5,7 +5,6 @@ import { OrderModel } from '../models/OrderModel.js';
 
 export const webhooksCreate = async (req, res, next) => {
 	try {
-		console.log('heloooooo::');
 		const stripe = Stripepackage(env.STRIPE_SECRET_KEY);
 		const endpoint = env.ENDPOINT_SECRET;
 		let event = req.body;
@@ -22,20 +21,20 @@ export const webhooksCreate = async (req, res, next) => {
 				return res.sendStatus(400);
 			}
 		}
-
+		console.log('event::', event);
 		const { orderId } = event.data.object.metadata;
 		let paymentIntent;
 		let order;
-		console.log('type:::', event.type);
+		// console.log('type:::', event.type);
 		switch (event.type) {
 			case 'payment_intent.succeeded':
 				paymentIntent = event.data.object;
-				console.log('paymintent:', paymentIntent);
+				// console.log('paymintent:', paymentIntent);
 
 				order = await OrderModel.findOne({
 					_id: orderId,
 				});
-				console.log('order:::::', order);
+
 				order.payment.payment_order_Id = paymentIntent.id;
 				order.payment.paymentStatus = 'success';
 				order.payment.updatedon = new Date();
@@ -56,7 +55,7 @@ export const webhooksCreate = async (req, res, next) => {
 				order.payment.paymentStatus = 'failed';
 				order.payment.updatedon = new Date();
 				await order.save();
-                console.log('Payment failed',);
+				console.log('Payment failed');
 				break;
 
 			default:

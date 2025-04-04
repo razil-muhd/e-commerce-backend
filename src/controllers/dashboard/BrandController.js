@@ -15,8 +15,7 @@ export const brandCreate = async (req, res, next) => {
 						});
 		const existmodel = await brandModel.findOne({ name: brands,deletedAt:null });
 
-		console.log( req.body);
-		console.log( existmodel);
+	
 
 		if (existmodel) {
 			return res.status(422).json({ message: 'brand name already exist' });
